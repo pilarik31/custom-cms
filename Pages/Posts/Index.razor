@@ -1,0 +1,82 @@
+﻿@page "/posts"
+@using CustomCMS.Model;
+@using CustomCMS.Data;
+
+@inject PostService service
+
+<PageTitle>Příspěvky</PageTitle>
+
+<h3>Příspěvky</h3>
+
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Product Id</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Description</th>
+                    <th>Delete Product</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Posts.Any())
+                {
+                    @foreach (var post in Posts)
+                    {
+                        <tr @onclick="(() => SetPostForUpdate(post))">
+                            <td>@post.Id</td>
+                            <td>@post.Title</td>
+                            <td><button class="btn btn-danger" @onclick="(() => DeletePost(post))">Delete</button></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6"><strong>No products available</strong></td></tr>
+                }
+            </tbody>
+        </table>
+
+@code {
+
+    List<Post> Posts = new List<Post>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshPosts();
+    }
+
+    private async Task RefreshPosts()
+    {
+        Posts = await service.GetPostAsync();
+    }
+
+
+    public Post NewPost { get; set; } = new Post();
+
+    private async Task AddNewPost()
+    {
+        await service.AddPostAsync(NewPost);
+        NewPost = new Post();
+        await RefreshPosts();
+    }
+
+    Post UpdatePost = new Post();
+    private void SetPostForUpdate(Post post)
+    {
+        UpdatePost = post;
+    }
+
+    private async Task UpdatePostData()
+    {
+        await service.UpdatePostAsync(UpdatePost);
+        await RefreshPosts();
+    }
+
+    private async Task DeletePost(Post post)
+    {
+        await service.DeletePostAsync(post);
+        await RefreshPosts();
+    }
+}
